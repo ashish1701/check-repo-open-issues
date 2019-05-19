@@ -15,7 +15,7 @@ You'll get a table of Count of:
 
 In the project directory, you can run:
 
-### npm install 
+### `npm install `
 To install or the dependencies
 
 ### `npm start`
