@@ -1,0 +1,18 @@
+.input {
+  padding: 16px;
+  width: 300px;
+  border:1px solid #e6e6e6;
+  border-radius: 5px;
+}
+.button {
+  width: 120px;
+  height: 50px;
+  background: black;
+  border:1px solid #e6e6e6;
+  color: white
+}
+
+.input-box-container {
+  align-self: center;
+  margin: 32px auto;
+}
