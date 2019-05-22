@@ -1,12 +1,8 @@
 import React from "react";
-import Table from "../components/Table";
+import { get_open_issues } from "../apiCalls.js/GetIssues";
 import InputBox from "../components/Input";
+import Table from "../components/Table";
 import "./UI.css";
-import {
-  get_issues_before_n_days,
-  // get_open_issues,
-  get_all_issues
-} from "../apiCalls.js/GetIssues";
 
 class SearchBox extends React.Component {
   state = {
@@ -36,19 +32,21 @@ class SearchBox extends React.Component {
         ? userNameAndRepoName.substring(0, userNameAndRepoName.length - 1)
         : userNameAndRepoName;
     this.setState({ isFetching: true });
-    const lessThanOneDay = await get_issues_before_n_days(1, key);
-    const lessThanSevenDays = await get_issues_before_n_days(7, key);
-    const totalCount = await get_all_issues(key);
-    const moreThanSevenDays = totalCount - lessThanOneDay - lessThanSevenDays;
+    const {
+      lessThanOneDay,
+      lessThanSevenDays,
+      moreThanSevenDays,
+      totalCount,
+      error
+    } = await get_open_issues(key);
     this.setState({
       lessThanOneDay,
       lessThanSevenDays,
       moreThanSevenDays,
       totalCount,
+      errorMessage: error,
       isFetching: false
     });
-    const errorMessage = !(lessThanOneDay && lessThanSevenDays && totalCount);
-    this.setState({ errorMessage });
   }
   render() {
     const {

@@ -2,32 +2,60 @@ const api_url = "https://api.github.com/repos";
 
 export async function get_all_issues(key) {
   let issues_count = 0;
+  let error = "";
   await fetch(`${api_url}/${key}?page=1&per_page=1`)
     .then(response => response.json())
     .then(issues => (issues_count = issues.open_issues_count))
-    .catch(err => console.log({ err }));
+    .catch(err => {
+      console.log({ err });
+      error = err.message;
+    });
 
-  return issues_count;
+  return { issues_count, error };
 }
 
-// export async function get_open_issues(key) {
-//   let pull_requests = 0;
-//   await fetch(`${api_url}/${key}/pulls?state=open&per_page=100&page=100`)
-//     .then(res => res.json())
-//     .then(pulls => (pull_requests = pulls.length))
-//     .catch(err => console.log({ err }));
-//   const all_issues = get_all_issues(key);
-//   console.log({ all_issues, pull_requests });
-//   return all_issues - pull_requests;
-// }
-
-export async function get_issues_before_n_days(n, key) {
-  const date = JSON.stringify(new Date(Date.now() - 24 * n * 60 * 60 * 1000));
-  console.log({ date });
-  let issues_count = 0;
-  await fetch(`${api_url}/${key}/issues?since=${date}&page=1&per_page=9999`)
-    .then(res => res.json())
-    .then(issues => (issues_count = issues.length))
-    .catch(err => console.log({ err }));
-  return issues_count;
+export async function get_open_issues(key) {
+  const { issues_count, error } = await get_all_issues(key);
+  if (error) {
+    return error;
+  } else {
+    let errorMsg = "";
+    const pages = issues_count / 100;
+    let lessThanOneDay = 0;
+    let lessThanSevenDays = 0;
+    let moreThanSevenDays = 0;
+    let totalCount = 0;
+    const todayTimeStamp = new Date().getTime();
+    for (let i = 0; i < pages; i++) {
+      let pageWiseIssue = [];
+      await fetch(`${api_url}/${key}/issues?page=${i + 1}&per_page=100`)
+        .then(res => res.json())
+        .then(issues => (pageWiseIssue = issues));
+      if (pageWiseIssue.length) {
+        pageWiseIssue.map(issue => {
+          if (!issue.pull_request) {
+            totalCount += 1;
+            let lastOpenedTimeStamp = new Date(issue.updated_at).getTime();
+            const difference = todayTimeStamp - lastOpenedTimeStamp;
+            const dayDifference = Math.floor(
+              difference / (1000 * 60 * 60 * 24)
+            );
+            if (dayDifference <= 1) lessThanOneDay += 1;
+            else if (dayDifference > 1 && dayDifference < 7)
+              lessThanSevenDays += 1;
+            else moreThanSevenDays += 1;
+          }
+        });
+      } else {
+        errorMsg = pageWiseIssue.message;
+      }
+    }
+    return {
+      totalCount,
+      lessThanOneDay,
+      lessThanSevenDays,
+      moreThanSevenDays,
+      error: errorMsg
+    };
+  }
 }

@@ -14,7 +14,7 @@ const Table = props => {
   return (
     <>
       {isFetching && <p>Fetching ....</p>}
-      {!isFetching && errorMessage && <p>"Not Found"</p>}
+      {!isFetching && errorMessage && <p>{errorMessage}</p>}
       {!isFetching && !errorMessage && hasBeenClicked && (
         <div className="table-container">
           <div className="row">
